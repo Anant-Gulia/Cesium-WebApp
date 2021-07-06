@@ -3,25 +3,34 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
     terrainProvider: Cesium.createWorldTerrain()
 });
 
-console.log('HELLO');
-
 let flagPolyline = 0;
 let flagCircle = 0;
+let flagPolygon4Sides = 0;
 let selectedLocationOfA = 0;
 let selectedLocationOfB = 0;
+let selectedLocationOfC = 0;
+let selectedLocationOfD = 0;
 let mousePosition = 0;
 let arrCartographic = 0;
 let selectedLocationOfCenter = 0;
 let selectedLocationOfRadius = 0;
+let objectMarkerA;
+let objectMarkerB;
+let objectMarkerC;
+let objectMarkerD;
 
 function removeEventListeners() {
     viewer.scene.canvas.removeEventListener('click', callPolyLine, false);
     viewer.scene.canvas.removeEventListener('click', callCircle, false);
-    viewer.scene.canvas.removeEventListener('click', callDeleteFunction, false);
+    viewer.scene.canvas.removeEventListener('click', viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
+        if (Cesium.defined(selectedEntity))
+                viewer.entities.remove(selectedEntity);
+    }), false);
     viewer.selectedEntityChanged.removeEventListener(function(selectedEntity) {
         if (Cesium.defined(selectedEntity))
                 viewer.entities.remove(selectedEntity);
     });
+    viewer.scene.canvas.removeEventListener('click', callPolygonWith4Sides, false);
 }
 
 viewer.entities.add({
@@ -66,12 +75,37 @@ function createPolyline(selectedLocationOfA, selectedLocationOfB) {
             clampToGround : true
         }
     });
+    //viewer.entity.merge(objectMarkerA, objectMarkerB);
+    viewer.flyTo(viewer.entities);
+}
+
+function createPolygonWith4Sides(selectedLocationOfA, selectedLocationOfB, selectedLocationOfC, selectedLocationOfD, height) {
+    let arr1 = Cesium.Cartographic.fromCartesian(selectedLocationOfA);
+    let arr2 = Cesium.Cartographic.fromCartesian(selectedLocationOfB);
+    let arr3 = Cesium.Cartographic.fromCartesian(selectedLocationOfC);
+    let arr4 = Cesium.Cartographic.fromCartesian(selectedLocationOfD);
+    viewer.entities.add({
+        name: "Red polygon with 4 sides",
+        polygon : {
+            hierarchy : Cesium.Cartesian3.fromDegreesArrayHeights([
+                arr1.longitude / Math.PI * 180, arr1.latitude / Math.PI * 180, height,
+                arr2.longitude / Math.PI * 180, arr2.latitude / Math.PI * 180, height,
+                arr3.longitude / Math.PI * 180, arr3.latitude / Math.PI * 180, height,
+                arr4.longitude / Math.PI * 180, arr4.latitude / Math.PI * 180, height]),
+            extrudedHeight: 0,
+            perPositionHeight: true,
+            material : Cesium.Color.RED.withAlpha(0.75),
+            //outline : true,
+            outlineColor : Cesium.Color.BLACK,
+            clampToGround : true
+        }
+    });
     viewer.flyTo(viewer.entities);
 }
 
 function setMarkerInPosA(positionCartographic) {
     viewer.pickTranslucentDepth = true;
-    viewer.entities.add({
+    objectMarkerA = viewer.entities.add({
         name: 'Point A',
         position: Cesium.Cartesian3.fromRadians(positionCartographic.longitude, positionCartographic.latitude, 10),
         point: {
@@ -96,7 +130,7 @@ function setMarkerInPosA(positionCartographic) {
 
 function setMarkerInPosB(positionCartographic) {
     viewer.pickTranslucentDepth = true;
-    viewer.entities.add({
+    objectMarkerB = viewer.entities.add({
         name: 'Point B',
         position: Cesium.Cartesian3.fromRadians(positionCartographic.longitude, positionCartographic.latitude, 10),
         point: {
@@ -109,6 +143,56 @@ function setMarkerInPosB(positionCartographic) {
         label: {
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
             text: 'Point B',
+            font: '15pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 2,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -9),
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
+        }
+    });
+}
+
+function setMarkerInPosC(positionCartographic) {
+    viewer.pickTranslucentDepth = true;
+    objectMarkerC = viewer.entities.add({
+        name: 'Point C',
+        position: Cesium.Cartesian3.fromRadians(positionCartographic.longitude, positionCartographic.latitude, 10),
+        point: {
+            pixelSize: 5,
+            color: Cesium.Color.RED,
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 2,
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
+        },
+        label: {
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            text: 'Point C',
+            font: '15pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 2,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -9),
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
+        }
+    });
+}
+
+function setMarkerInPosD(positionCartographic) {
+    viewer.pickTranslucentDepth = true;
+    objectMarkerD = viewer.entities.add({
+        name: 'Point D',
+        position: Cesium.Cartesian3.fromRadians(positionCartographic.longitude, positionCartographic.latitude, 10),
+        point: {
+            pixelSize: 5,
+            color: Cesium.Color.RED,
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 2,
+            heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
+        },
+        label: {
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            text: 'Point D',
             font: '15pt monospace',
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             outlineWidth: 2,
@@ -179,15 +263,50 @@ function drawPolyline() {
     viewer.scene.canvas.addEventListener('click', callPolyLine, false);
 }
 
-function deletePolygon() {
-    alert('Select any polygon to delete');
-    viewer.scene.canvas.addEventListener('click', callDeleteFunction, false);
+function deleteEntity() {
+    alert('Select any entity to delete');
+    viewer.scene.canvas.addEventListener('click', viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
+        console.log(selectedEntity);
+        if (Cesium.defined(selectedEntity))
+                viewer.entities.remove(selectedEntity);
+    }), false);
 }
 
-let callDeleteFunction = viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
-    if (Cesium.defined(selectedEntity))
-            viewer.entities.remove(selectedEntity);
-});
+function drawPolygonWith4Sides() {
+    alert('Select 4 points to create a polygon');
+    viewer.scene.canvas.addEventListener('click', callPolygonWith4Sides, false);
+}
+
+// let callDeleteFunction = viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
+//     console.log(selectedEntity);
+//     if (Cesium.defined(selectedEntity))
+//             viewer.entities.remove(selectedEntity);
+// });
+
+let callPolygonWith4Sides = function PolygonAsArgument (event) {
+    event.preventDefault();
+    flagPolygon4Sides++;
+    if(flagPolygon4Sides === 1) {
+        mousePosition = new Cesium.Cartesian2(event.clientX, event.clientY);
+        selectedLocationOfA = viewer.scene.pickPosition(mousePosition);
+        setMarkerInPosA(Cesium.Cartographic.fromCartesian(selectedLocationOfA));
+    } else if(flagPolygon4Sides === 2) {
+        mousePosition = new Cesium.Cartesian2(event.clientX, event.clientY);
+        selectedLocationOfB = viewer.scene.pickPosition(mousePosition);
+        setMarkerInPosB(Cesium.Cartographic.fromCartesian(selectedLocationOfB));
+    } else if(flagPolygon4Sides === 3) {
+        mousePosition = new Cesium.Cartesian2(event.clientX, event.clientY);
+        selectedLocationOfC = viewer.scene.pickPosition(mousePosition);
+        setMarkerInPosC(Cesium.Cartographic.fromCartesian(selectedLocationOfC));
+    } else if(flagPolygon4Sides === 4) {
+        mousePosition = new Cesium.Cartesian2(event.clientX, event.clientY);
+        selectedLocationOfD = viewer.scene.pickPosition(mousePosition);
+        setMarkerInPosD(Cesium.Cartographic.fromCartesian(selectedLocationOfD));
+        let height = Number(window.prompt("Enter height of polygon (in metres)", ""));
+        createPolygonWith4Sides(selectedLocationOfA, selectedLocationOfB, selectedLocationOfC, selectedLocationOfD, height);
+        flagPolygon4Sides = 0;
+    }
+}
 
 let callPolyLine = function polylineAsArgument (event) {
     event.preventDefault();
@@ -233,4 +352,14 @@ let callCircle = function circleAsArgument (event) {
     viewer.flyTo(viewer.entities);
     flagCircle = 0;
     }
+}
+
+function editPolyline() {
+    viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
+        //if (Cesium.defined(selectedEntity))
+    })
+}
+
+function editEntity() {
+    alert('Editing not added yet');
 }
