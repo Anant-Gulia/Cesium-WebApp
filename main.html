@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Cesium Project</title>
+  <meta charset="utf-8">
+  <script src="http://localhost:8080/3d/libs/Cesium-1.82/Build/Cesium/Cesium.js"></script>
+  <link href="http://localhost:8080/3d/libs/Cesium-1.82/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <script src="http://localhost:8080/3d/libs/Cesium-1.82/Apps/Sandcastle/Sandcastle-header.js"></script>
+  <link rel="stylesheet" href="styling.css">
+</head>
+<style>
+  @import url(http://localhost:8080/3d/libs/Cesium-1.82/Apps/Sandcastle/CesiumSandcastle.css);
+
+  @import url(http://localhost:8080/3d/libs/Cesium-1.82/Apps/Sandcastle/templates/bucket.css);
+</style>
+<body>
+  <div id="demo" style='z-index: 2000; position: absolute; height:100px; width:180px; right: 10px; bottom: 0px; color: white'></div>
+  <div id="demo"></div>
+  <div id="cesiumContainer" class="fullSize"></div>
+  <div id="loadingOverlay"><h1>Loading...</h1></div>
+    <nav>
+      <ul class="mainMenu">
+        <li><div id="option1">Menu</div>
+          <ul class="subMenu">
+            <li><div id="option2">Draw</div>
+              <ul class="superSubMenu">
+                <li><div id="option2" onclick="removeEventListeners(), drawPolyline()">Draw Polyline</div></li>
+                <li><div id="option2" onclick="removeEventListeners(), drawCircle()">Draw Circle</div></li>
+              </ul>
+            </li>
+            <li><div id="option2">Edit</div></li>
+            <li><div id="option2" onclick="removeEventListeners(), deletePolygon()">Delete</div></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+ <script src="javascript.js"></script>
+</body>
+</html>

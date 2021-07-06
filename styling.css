@@ -1,0 +1,46 @@
+nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
+}
+
+nav .mainMenu>li {
+  display: inline-block;
+}
+
+nav div {
+  margin: 0;
+  text-align: left;
+  padding: 16px;
+  background-color: #696969;
+  color: white;
+  text-decoration: none;
+  position: relative;
+}
+
+nav li:hover>div {
+  background: #585858;
+  cursor: pointer;
+}
+
+nav .subMenu, nav .superSubMenu {
+  position: absolute;
+  display: none;
+}
+
+nav .superSubMenu {
+  top: 0;
+  right: 0;
+  transform: translate(100%,0);
+}
+
+nav .mainMenu>li:hover .subMenu, nav .subMenu>li:hover>.superSubMenu {
+  display: block;
+}
+
+nav .subMenu li {
+  position: relative;
+  border-top: 1px solid white;
+  border-bottom: 1px solid white;
+}
