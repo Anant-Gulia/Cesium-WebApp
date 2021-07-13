@@ -24,18 +24,18 @@ nav li:hover>div {
   cursor: pointer;
 }
 
-nav .subMenu, nav .superSubMenu {
+nav .subMenu, nav .polylineDropdownMenu, nav .circleDropdownMenu, nav .polygonDropdownMenu {
   position: absolute;
   display: none;
 }
 
-nav .superSubMenu {
+nav .polylineDropdownMenu, nav .circleDropdownMenu, nav .polygonDropdownMenu {
   top: 0;
   right: 0;
   transform: translate(100%,0);
 }
 
-nav .mainMenu>li:hover .subMenu, nav .subMenu>li:hover>.superSubMenu {
+nav .mainMenu>li:hover .subMenu, nav .subMenu>li:hover>.polylineDropdownMenu, nav .subMenu>li:hover>.circleDropdownMenu, nav .subMenu>li:hover>.polygonDropdownMenu {
   display: block;
 }
 
