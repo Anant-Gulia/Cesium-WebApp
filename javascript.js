@@ -9,6 +9,11 @@ let markerName = 'A';
 let polylineLocations = [];
 let circleLocations = [];
 let polygonLocations = [];
+let polygonLocationsEntities = [];
+let polygonEntities = [];
+let polylineEntities = [];
+let lastPolylineEntity = [];
+let removeRotateCameraEventListener = 0;
 
 // document.getElementById("thirdSubMenu").style.cssText = "display: none; position: absolute; top: 0; right: 0; transform: translate(100%,0)";
 
@@ -20,16 +25,14 @@ let polygonLocations = [];
 function removeEventListeners() {
     viewer.scene.canvas.removeEventListener('click', callPolyLine, false);
     viewer.scene.canvas.removeEventListener('click', callCircle, false);
-    viewer.scene.canvas.removeEventListener('click', viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
-        if (Cesium.defined(selectedEntity))
-                viewer.entities.remove(selectedEntity);
-    }), false);
-    viewer.selectedEntityChanged.removeEventListener(function(selectedEntity) {
-        if (Cesium.defined(selectedEntity))
-                viewer.entities.remove(selectedEntity);
-    });
+    viewer.scene.canvas.removeEventListener('click', callDeleteEntity, false);
+    // viewer.selectedEntityChanged.removeEventListener(function(selectedEntity) {
+    //     if (Cesium.defined(selectedEntity))
+    //             viewer.entities.remove(selectedEntity);
+    // });
     viewer.scene.canvas.removeEventListener('click', callPolygon, false);
     viewer.scene.canvas.removeEventListener('contextMenu', callCreatePolygon, false);
+    viewer.scene.canvas.removeEventListener('click', callFlyAround, false);
 }
 
 viewer.entities.add({
@@ -43,6 +46,9 @@ viewer.entities.add({
 });
 
 viewer.scene.canvas.addEventListener('mousemove', function(e) {
+    let camera = viewer.scene.camera;
+    let heightUnit = ' km';
+    let cameraHeight = 0;
     var entity = viewer.entities.getById('mou');
     var ellipsoid = viewer.scene.globe.ellipsoid;
     var cartesian = viewer.camera.pickEllipsoid(new Cesium.Cartesian3(e.clientX, e.clientY), ellipsoid);
@@ -50,11 +56,18 @@ viewer.scene.canvas.addEventListener('mousemove', function(e) {
         var cartographic = ellipsoid.cartesianToCartographic(cartesian);
         var longitudeString = Cesium.Math.toDegrees(cartographic.longitude).toFixed(10);
         var latitudeString = Cesium.Math.toDegrees(cartographic.latitude).toFixed(10);
+        if (camera.positionCartographic.height < 3000) {
+            heightUnit = ' m';
+            cameraHeight = Math.round(camera.positionCartographic.height);
+        } else {
+            heightUnit = ' km';
+            cameraHeight = Math.round(camera.positionCartographic.height / 1000);
+        }
         entity.position = cartesian;
         entity.label.show = false;
         entity.label.font_style = 10;
         //entity.position= Cesium.Cartesian2.ZERO; 
-        entity.label.text = 'Longitude: ' + longitudeString + ' Latitude: ' + latitudeString + '';
+        entity.label.text = 'Latitude: ' + latitudeString + ' Longitude: ' + longitudeString + '' + ' Camera Height: ' + cameraHeight + heightUnit;
         var result = entity.label.text; 
         document.getElementById("demo").innerHTML = result;
     } else {
@@ -74,7 +87,7 @@ function createPolyline(polylineLocations, length) {
     let labelPosition = [];
     labelPosition.push((arr2.longitude + arr1.longitude) / 2);
     labelPosition.push((arr2.latitude + arr1.latitude) / 2);
-    viewer.entities.add({
+    let polylineEntity = viewer.entities.add({
         name: 'Red Polyline',
         position: Cesium.Cartesian3.fromRadians(labelPosition[0], labelPosition[1], 10),
         polyline: {
@@ -94,6 +107,8 @@ function createPolyline(polylineLocations, length) {
             heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
         }
     });
+    polylineEntities.push(polylineEntity);
+    lastPolylineEntity.push(polylineEntity);
     viewer.flyTo(viewer.entities);
 }
 
@@ -120,7 +135,7 @@ let callCreatePolygon = function createPolygon() {
         arrayPolygonLocations.push(temp.latitude);
         arrayPolygonLocations.push(height);
     }
-    viewer.entities.add({
+    let polygonEntity = viewer.entities.add({
         name: "Red polygon with 4 sides",
         polygon : {
             hierarchy : Cesium.Cartesian3.fromRadiansArrayHeights(arrayPolygonLocations),
@@ -143,13 +158,15 @@ let callCreatePolygon = function createPolygon() {
         }
     });
     viewer.flyTo(viewer.entities);
+    polygonEntities.push(polygonEntity);
     polygonLocations.length = 0;
+    polygonLocationsEntities.length = 0;
     markerName = 'A';
 }
 
 function setMarker(positionCartographic, localMarkerName) {
     viewer.pickTranslucentDepth = true;
-    viewer.entities.add({
+    let markerEntity = viewer.entities.add({
         name: localMarkerName,
         position: Cesium.Cartesian3.fromRadians(positionCartographic.longitude, positionCartographic.latitude, 10),
         point: {
@@ -170,6 +187,9 @@ function setMarker(positionCartographic, localMarkerName) {
             heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND
         }
     });
+    polygonLocationsEntities.push(markerEntity);
+    polylineEntities.push(markerEntity);
+    lastPolylineEntity.push(markerEntity);
 }
 
 function drawCircle() {
@@ -178,7 +198,7 @@ function drawCircle() {
 }
 
 function drawPolyline() {
-    alert("A polyline will now be drawn");
+    alert("Left click to select a point");
     viewer.scene.canvas.addEventListener('click', callPolyLine, false);
 }
 
@@ -188,17 +208,21 @@ function drawPolygon() {
     viewer.scene.canvas.addEventListener('click', callPolygon, false);
 }
 
+function flyAround() {
+    alert('Select a point to fly around');
+    viewer.scene.canvas.addEventListener('click', callFlyAround, false);
+}
+
 function deleteEntity() {
     alert('Select any entity to delete');
-    viewer.scene.canvas.addEventListener('click', viewer.selectedEntityChanged.addEventListener(function (selectedEntity) {
-        if (Cesium.defined(selectedEntity)) {
-            console.log(selectedEntity);
-            console.log(selectedEntity._id);
-            let temp69 = viewer.entities.getById(''+selectedEntity._id);
-            console.log('TEMP69 ' + temp69);
+    viewer.scene.canvas.addEventListener('click', callDeleteEntity, false);
+}
+
+let callDeleteEntity = function deleteEntityAsArgument() {
+    viewer.selectedEntityChanged.addEventListener(function (selectedEntity) {
+        if (Cesium.defined(selectedEntity)) 
             viewer.entities.remove(selectedEntity);
-        }
-    }), false);
+    })
 }
 
 let callPolygon = function PolygonAsArgument (event) {
@@ -219,7 +243,8 @@ let callPolyLine = function polylineAsArgument (event) {
     if (flagPolyline === 1) {
         //For Point A
         selectedLocation = viewer.scene.pickPosition(mousePosition);
-        polylineLocations.push(selectedLocation)
+        polylineLocations.push(selectedLocation);
+        lastPolylineEntity.push(selectedLocation);
         setMarker(Cesium.Cartographic.fromCartesian(selectedLocation), 'Point ' + markerName);
         markerName = String.fromCharCode(markerName.charCodeAt() + 1);
     } else if (flagPolyline === 2) {
@@ -258,10 +283,69 @@ let callCircle = function circleAsArgument (event) {
     }
 }
 
-function editPolyline() {
-    viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
-        //if (Cesium.defined(selectedEntity))
-    })
+let callFlyAround = function flyAroundAsArgument(event) {
+    event.preventDefault();
+    let camera = viewer.scene.camera;
+    let mousePosition = new Cesium.Cartesian2(event.clientX, event.clientY);
+    let selectedLocation = viewer.scene.pickPosition(mousePosition);
+    let locationCartographic = Cesium.Cartographic.fromCartesian(selectedLocation);
+    setMarker(locationCartographic, 'Point ' + markerName);
+    markerName = String.fromCharCode(markerName.charCodeAt() + 1);
+    let center = Cesium.Cartesian3.fromRadians(locationCartographic.longitude, locationCartographic.latitude, locationCartographic.height);
+    let transform = Cesium.Transforms.eastNorthUpToFixedFrame(center);
+    viewer.scene.camera.lookAtTransform(transform, new Cesium.HeadingPitchRange(camera.heading, camera.pitch, camera.positionCartographic.height));
+    removeRotateCameraEventListener = viewer.clock.onTick.addEventListener(function(clock) {
+        viewer.scene.camera.rotateRight(0.004);
+    });
+}
+
+function stopFlyingAroundAPoint() {
+    alert('flying stopped');
+    markerName = 'A';
+    removeRotateCameraEventListener();
+}
+
+function deleteLastPolygonPoint() {
+    if(polygonLocations.length == 0)
+        alert('No points left to be deleted');
+    else {
+        viewer.entities.remove(polygonLocationsEntities.pop());
+        polygonLocations.pop();
+        markerName = String.fromCharCode(markerName.charCodeAt() - 1);
+    }
+}
+
+function deleteLastPolygon() {
+    if(polygonEntities.length == 0)
+        alert('No Polygons left to be deleted');
+    else
+        viewer.entities.remove(polygonEntities.pop());
+}
+
+function editLastPolyline() {
+    viewer.entities.remove(lastPolylineEntity.pop());
+    viewer.entities.remove(lastPolylineEntity.pop());
+    viewer.entities.remove(lastPolylineEntity.pop());
+    let locationPointA = lastPolylineEntity.pop();
+    polylineEntities.pop();
+    polylineEntities.pop();
+    polylineEntities.pop();
+    setMarker(Cesium.Cartographic.fromCartesian(locationPointA), 'Point ' + markerName);
+    polylineLocations.push(locationPointA);
+    markerName = String.fromCharCode(markerName.charCodeAt() + 1);
+    flagPolyline++;
+    lastPolylineEntity.push(locationPointA);
+    drawPolyline();
+}
+
+function deleteLastPolyline() {
+    if(polylineEntities.length == 0)
+        alert('No Polylines left to be deleted');
+    else {
+        viewer.entities.remove(polylineEntities.pop());
+        viewer.entities.remove(polylineEntities.pop());
+        viewer.entities.remove(polylineEntities.pop());
+    }
 }
 
 function editEntity() {

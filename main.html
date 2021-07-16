@@ -24,25 +24,35 @@
           <ul class="subMenu">
             <li><div id="option2">Polyline</div>
               <ul class="polylineDropdownMenu">
-                <li><div id="option5" onclick="removeEventListeners(), drawPolyline()">Draw Polyline</div></li>
-                <li><div id="option6" onclick="removeEventListeners(), deleteEntity()">Delete Polyline</div></li>
-                <li><div id="option7" onclick="removeEventListeners(), editEntity()">Edit Polyline</div></li>
+                <li><div id="option6" onclick="removeEventListeners(), drawPolyline()">Draw Polyline</div></li>
+                <li><div id="option8" onclick="removeEventListeners(), editLastPolyline()">Edit Last Polyline</div></li>
+                <li><div id="option14" onclick="deleteLastPolyline()">Delete Last Polyline</div></li>
+                <li><div id="option7" onclick="removeEventListeners(), deleteEntity()">Delete Selective Polyline</div></li>
               </ul>
             </li>
             <li><div id="option3">Circle</div>
               <ul class="circleDropdownMenu">
-                <li><div id="option8" onclick="removeEventListeners(), drawCircle()">Draw Circle</div></li>
-                <li><div id="option9" onclick="removeEventListeners(), deleteEntity()">Delete Circle</div></li>
-                <li><div id="option10" onclick="removeEventListeners(), editEntity()">Edit Circle</div></li>
+                <li><div id="option9" onclick="removeEventListeners(), drawCircle()">Draw Circle</div></li>
+                <li><div id="option10" onclick="removeEventListeners(), deleteEntity()">Delete Circle</div></li>
+                <li><div id="option11" onclick="removeEventListeners(), editEntity()">Edit Circle</div></li>
               </ul>
             </li>
             <li><div id="option4">Polygon</div>
               <ul class="polygonDropdownMenu">
-                <li><div id="option11" onclick="removeEventListeners(), drawPolygon()">Draw Polygon</div></li>
-                <li><div id="option12" onclick="removeEventListeners(), deleteEntity()">Delete Polygon</div></li>
-                <li><div id="option13" onclick="removeEventListeners(), editEntity()">Edit Polygon</div></li>
+                <li><div id="option12" onclick="removeEventListeners(), drawPolygon()">Draw Polygon</div></li>
+                <li><div id="option14" onclick="deleteLastPolygonPoint()">Delete Last Point</div></li>
+                <li><div id="option14" onclick="deleteLastPolygon()">Delete Last Polygon</div></li>
+                <li><div id="option13" onclick="removeEventListeners(), deleteEntity()">Delete Polygon</div></li>
+                <!-- <li><div id="option14" onclick="removeEventListeners(), editEntity()">Edit Polygon</div></li> -->
               </ul>
             </li>
+            <li><div id="option5">Fly Around a Point</div>
+              <ul class="flyAroundDropdownMenu">
+                <li><div id="option15" onclick="removeEventListeners(), flyAround()">Select a Point</div></li>
+                <li><div id="option16" onclick="removeEventListeners(), stopFlyingAroundAPoint()">Stop Flying</div></li>
+              </ul>
+            </li>
+            <li><div id="option17" onclick="removeEventListeners()">Stop Drawing</div></li>
           </ul>
         </li>
       </ul>
