@@ -11,6 +11,8 @@ let circleLocations = [];
 let polygonLocations = [];
 let polygonLocationsEntities = [];
 let polygonEntities = [];
+let polygonVertexCount = [];
+let polygonCount = 0;
 let polylineEntities = [];
 let lastPolylineEntity = [];
 let removeRotateCameraEventListener = 0;
@@ -161,6 +163,7 @@ let callCreatePolygon = function createPolygon() {
     polygonEntities.push(polygonEntity);
     polygonLocations.length = 0;
     polygonLocationsEntities.length = 0;
+    polygonCount++;
     markerName = 'A';
 }
 
@@ -188,6 +191,8 @@ function setMarker(positionCartographic, localMarkerName) {
         }
     });
     polygonLocationsEntities.push(markerEntity);
+    polygonEntities.push(markerEntity);
+    polygonVertexCount[polygonCount]++;
     polylineEntities.push(markerEntity);
     lastPolylineEntity.push(markerEntity);
 }
@@ -227,6 +232,8 @@ let callDeleteEntity = function deleteEntityAsArgument() {
 
 let callPolygon = function PolygonAsArgument (event) {
     event.preventDefault();
+    if(typeof polygonVertexCount[polygonCount] == 'undefined')
+        polygonVertexCount[polygonCount] = 0;
     let mousePosition = new Cesium.Cartesian2(event.clientX, event.clientY);
     let selectedLocation = viewer.scene.pickPosition(mousePosition);
     polygonLocations.push(selectedLocation);
@@ -318,18 +325,19 @@ function deleteLastPolygonPoint() {
 function deleteLastPolygon() {
     if(polygonEntities.length == 0)
         alert('No Polygons left to be deleted');
-    else
-        viewer.entities.remove(polygonEntities.pop());
+    else {
+        for(var i = 0; i <= polygonVertexCount[polygonCount - 1]; i++)
+            viewer.entities.remove(polygonEntities.pop());
+        polygonCount--;
+    }
 }
 
 function editLastPolyline() {
-    viewer.entities.remove(lastPolylineEntity.pop());
-    viewer.entities.remove(lastPolylineEntity.pop());
-    viewer.entities.remove(lastPolylineEntity.pop());
+    for(var i = 0; i < 3; i++)
+        viewer.entities.remove(lastPolylineEntity.pop());
     let locationPointA = lastPolylineEntity.pop();
-    polylineEntities.pop();
-    polylineEntities.pop();
-    polylineEntities.pop();
+    for(var i = 0; i < 3; i++)
+        polylineEntities.pop();
     setMarker(Cesium.Cartographic.fromCartesian(locationPointA), 'Point ' + markerName);
     polylineLocations.push(locationPointA);
     markerName = String.fromCharCode(markerName.charCodeAt() + 1);
@@ -342,9 +350,8 @@ function deleteLastPolyline() {
     if(polylineEntities.length == 0)
         alert('No Polylines left to be deleted');
     else {
-        viewer.entities.remove(polylineEntities.pop());
-        viewer.entities.remove(polylineEntities.pop());
-        viewer.entities.remove(polylineEntities.pop());
+        for(var i = 0; i < 3; i++) 
+            viewer.entities.remove(polylineEntities.pop());
     }
 }
 
