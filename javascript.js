@@ -18,7 +18,7 @@ let polylineLocations = [];
 let polylineEntities = [];
 let lastPolylineEntity = [];
 let removeRotateCameraEventListener = 0;
-let rotationPointsCount = 0;
+let flyingPointEntity = 0;
 
 // document.getElementById("thirdSubMenu").style.cssText = "display: none; position: absolute; top: 0; right: 0; transform: translate(100%,0)";
 
@@ -134,24 +134,23 @@ function createCircle(centerPosition, circleLocations) {
 }
 
 let callCreatePolygon = function createPolygon() {
-    let height = Number(window.prompt("Enter height of polygon (in metres)", ""));
     let temp = 0, arrayPolygonLocations = [];
     for(let i = 0; i < polygonLocations.length; i++) {
         temp = Cesium.Cartographic.fromCartesian(polygonLocations[i]);
         arrayPolygonLocations.push(temp.longitude);
         arrayPolygonLocations.push(temp.latitude);
-        arrayPolygonLocations.push(height);
     }
     let polygonEntity = viewer.entities.add({
-        name: "Red polygon with 4 sides",
+        name: "Red polygon",
         polygon : {
-            hierarchy : Cesium.Cartesian3.fromRadiansArrayHeights(arrayPolygonLocations),
-            extrudedHeight: 0,
-            perPositionHeight: true,
+            hierarchy : Cesium.Cartesian3.fromRadiansArray(arrayPolygonLocations),
+            //extrudedHeight: 0,
+            //perPositionHeight: true,
             material : Cesium.Color.RED.withAlpha(0.75),
-            //outline : true,
+            outline : true,
             outlineColor : Cesium.Color.BLACK,
-            clampToGround : true
+            //height: 0
+            //clampToGround : true
         },
         label: {
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -202,6 +201,7 @@ function setMarker(positionCartographic, localMarkerName) {
     lastPolylineEntity.push(markerEntity);
     lastCircleEntity.push(markerEntity);
     circleEntities.push(markerEntity);
+    flyingPointEntity = markerEntity;
 }
 
 function drawCircle() {
@@ -300,6 +300,10 @@ let callCircle = function circleAsArgument (event) {
 
 let callFlyAround = function flyAroundAsArgument(event) {
     event.preventDefault();
+    if(flyingPointEntity != 0) {
+        viewer.entities.remove(flyingPointEntity);
+        removeRotateCameraEventListener();
+    }
     let camera = viewer.scene.camera;
     let mousePosition = new Cesium.Cartesian2(event.clientX, event.clientY);
     let selectedLocation = viewer.scene.pickPosition(mousePosition);
@@ -312,15 +316,12 @@ let callFlyAround = function flyAroundAsArgument(event) {
     removeRotateCameraEventListener = viewer.clock.onTick.addEventListener(function(clock) {
         viewer.scene.camera.rotateRight(0.004);
     });
-    rotationPointsCount++;
 }
 
 function stopFlyingAroundAPoint() {
     alert('flying stopped');
     markerName = 'A';
-    for(var i = 0; i < rotationPointsCount; i++)
-        removeRotateCameraEventListener();
-    rotationPointsCount = 0;
+    removeRotateCameraEventListener();
 }
 
 function deleteLastPolygonPoint() {
@@ -379,11 +380,15 @@ function editLastCircle() {
 
 function deleteLastCircle() {
     if(circleEntities.length == 0)
-        alert('No more circles left to delete')
+        alert('No more circles left to delete');
     else {
         for(var i = 0; i < 3; i++)
             viewer.entities.remove(circleEntities.pop());
     }
+}
+
+function stopDrawing() {
+    alert('Drawing stopped');
 }
 
 function editEntity() {

@@ -15,7 +15,6 @@
 </style>
 <body>
   <div id="demo" style='z-index: 2000; position: absolute; height:100px; width:180px; right: 10px; bottom: 0px; color: white'></div>
-  <div id="demo"></div>
   <div id="cesiumContainer" class="fullSize"></div>
   <div id="loadingOverlay"><h1>Loading...</h1></div>
     <nav>
@@ -44,7 +43,6 @@
                 <li><div id="option16" onclick="deleteLastPolygonPoint()">Delete Last Point</div></li>
                 <li><div id="option17" onclick="deleteLastPolygon()">Delete Last Polygon</div></li>
                 <li><div id="option18" onclick="removeEventListeners(), deleteEntity()">Delete Polygon</div></li>
-                <!-- <li><div id="option14" onclick="removeEventListeners(), editEntity()">Edit Polygon</div></li> -->
               </ul>
             </li>
             <li><div id="option5">Fly Around a Point</div>
@@ -53,7 +51,7 @@
                 <li><div id="option20" onclick="removeEventListeners(), stopFlyingAroundAPoint()">Stop Flying</div></li>
               </ul>
             </li>
-            <li><div id="option6" onclick="removeEventListeners()">Stop Drawing</div></li>
+            <li><div id="option6" onclick="removeEventListeners(), stopDrawing()">Stop Drawing</div></li>
           </ul>
         </li>
       </ul>
